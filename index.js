@@ -1,9 +1,14 @@
 import Enquirer from 'enquirer'
 import chalk from 'chalk'
 import faradoo from './faradoo.js'
+import fs from 'fs'
+import path from 'path'
+import handlebars from 'handlebars'
+import pdf from 'html-pdf-node'
 
+const cvTemplate = fs.readFileSync(path.join(process.cwd(), 'cv-template.html'), 'utf8')
+const cv = handlebars.compile(cvTemplate)
 const enquirer = new Enquirer()
-
 const emailRegEx = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
 
 try {
@@ -51,8 +56,22 @@ try {
   process.exit(1)
 }
 
+async function createPDF (data) {
+  await pdf.generatePdf({ content: cv(data) }, { format: 'A4' }).then(file => {
+    fs.writeFileSync(`cv-files/${data.name.replaceAll(' ', '_')}.pdf`, file)
+    console.log(
+      chalk.blueBright(
+        `Created cv for ${data.name} successfully`
+      )
+    )
+  })
+}
+
 async function init (credentials) {
   await faradoo.login(credentials)
+
+  // get all the cv data and generate the cv file
+  // createPDF(data)
 
   console.log('')
   console.log(chalk.blueBright.bold('Generated all cv\'s'))
