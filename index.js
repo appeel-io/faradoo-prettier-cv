@@ -5,16 +5,24 @@ import fs from 'fs'
 import path from 'path'
 import handlebars from 'handlebars'
 import pdf from 'html-pdf-node'
-import ora from 'ora'
+import helpers from './hbs-helpers.js'
+import express from 'express'
 
-const cvTemplate = fs.readFileSync(path.join(process.cwd(), 'cv-template.html'), 'utf8')
-const cv = handlebars.compile(cvTemplate)
+// start express server to render the templates and serve the assets
+const app = express()
+const port = 3000
+app.use(express.static('public'))
+const server = app.listen(port, async () => {})
+
+const cvTemplate = fs.readFileSync(path.join(process.cwd(), 'template.html'), 'utf8')
+handlebars.registerHelper(helpers)
+const template = handlebars.compile(cvTemplate)
 const enquirer = new Enquirer()
 const emailRegEx = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
 
 try {
   console.log(
-    chalk.blueBright.bold('Create pretty cv\'s from the terminal with the info from faradoo')
+    chalk.blue.bold('Create pretty cv\'s from the terminal with the info from faradoo')
   )
   console.log('')
 
@@ -30,22 +38,6 @@ try {
       name: 'password',
       message: 'Password for Faradoo'
     }
-  //   // {
-  //   //   type: 'multiselect',
-  //   //   name: 'updates',
-  //   //   message: 'Pick your data to update. (space to select)',
-  //   //   choices: [
-  //   //     { name: 'All' },
-  //   //     { name: 'Profile' },
-  //   //     { name: 'Address' },
-  //   //     { name: 'Skills' },
-  //   //     { name: 'Projects' },
-  //   //     { name: 'Languages' },
-  //   //     { name: 'Education' },
-  //   //     { name: 'Trainings / Seminars' },
-  //   //     { name: 'Certificates' },
-  //   //   ]
-  //   // }
   ])
 
   init(credentials)
@@ -54,12 +46,28 @@ try {
   process.exit(1)
 }
 
-async function createPDF (data) {
-  await pdf.generatePdf({ content: cv(data) }, { format: 'A4' }).then(file => {
+async function createPDF (data, options) {
+  if (options.showSkills && options.showSkills !== 'show all') {
+    data.skills = data.skills.filter(skill => Number(skill.score) >= Number(options.showSkills) - 1)
+  }
+
+  if (options.showProjects) {
+    data.projects = data.projects.slice(0, options.showProjects)
+  }
+
+  const content = template({ ...data, ...options })
+  fs.writeFileSync('public/index.html', content)
+
+  await pdf.generatePdf({ url: `http://localhost:${port}` },
+    {
+      format: 'A4',
+      printBackground: true
+    }
+  ).then(file => {
     fs.writeFileSync(`cv-files/${data.name.replaceAll(' ', '_')}.pdf`, file)
     console.log(
-      chalk.blueBright(
-        `Created cv for ${data.name} successfully`
+      chalk.green(
+            `Created cv for ${data.name} successfully`
       )
     )
   })
@@ -69,20 +77,38 @@ async function init (credentials) {
   await faradoo.login(credentials)
   await faradoo.getEmployees()
 
+  const cvOptions = await enquirer.prompt([
+    {
+      type: 'select',
+      name: 'logo',
+      message: 'Pick your logo to display on the cv\'s',
+      choices: ['appeel', 'xplore', 'cronos']
+    },
+    {
+      type: 'select',
+      name: 'showSkills',
+      message: 'Only show skills when they hava a specific score or higher',
+      choices: ['1', '2', '3', '4', '5']
+    },
+    {
+      type: 'numeral',
+      name: 'showProjects',
+      message: 'Max amount of projects to be shown on the cv, when left empty there\'s no max'
+    }
+  ])
+
   const ids = [21]
 
   for (const id of ids) {
-    let spinner
     try {
-      spinner = ora(`Fetching cv data from employee ${id}`).start()
       const data = await faradoo.getEmployeeData(id)
-      // await createPDF(data)
-      spinner.succeed(`Successfully generated cv for employee: ${id}`)
+      await createPDF(data, cvOptions)
     } catch (err) {
-      spinner.fail(`Error while fetching cv data from employee: ${id}`)
+      console.log(
+        chalk.red(`Error while fetching cv data from employee: ${id}`)
+      )
+    } finally {
+      server.close()
     }
   }
-
-  console.log('')
-  console.log(chalk.blueBright.bold('Generated all cv\'s'))
 }

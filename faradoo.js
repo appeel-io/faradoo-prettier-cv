@@ -130,7 +130,9 @@ function formatProjects (projects) {
     })
   })
 
-  return formattedProjects
+  return formattedProjects.sort((a, b) =>
+    new Date(`01/${b.end}`).getTime() - new Date(`01/${a.end}`).getTime()
+  )
 }
 
 function formatSkills (evaluation) {
@@ -138,8 +140,7 @@ function formatSkills (evaluation) {
 
   evaluation.forEach(eva => {
     formattedSkills.push({
-      score:
-      eva.score.value,
+      score: eva.score.value,
       name: eva.skill.name
     })
   })
@@ -200,7 +201,8 @@ function formatTrainings (trainings) {
         ? 'training'
         : 'seminar',
       start: training.startDate,
-      end: training.endDate
+      end: training.endDate,
+      comment: training.comment
     })
   })
 

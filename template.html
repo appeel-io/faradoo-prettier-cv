@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Faradoo cv template</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600;900&display=swap" rel="stylesheet">
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: 'rgb(59, 129, 246)',
+						blueish: 'rgb(28, 56, 97)',
+            blue: {
+							light: 'rgb(94, 161, 246)',
+							dark: 'rgb(33, 74, 136)'
+						}
+          }
+        }
+      }
+    }
+  </script>
+	<meta charset="utf-8">
+</head>
+<body 
+	class="p-0 m-0 text-blueish" 
+	style="font-style: Inter, sans-serif;"
+>
+	<div class="w-[1200px] flex flex-col gap-10 p-10">
+		<div class="flex gap-8">
+			<div class="max-h-[200px] max-w-[150px]">
+				<img src="/logos/{{logo}}.png" class="w-full h-full object-contain">
+			</div>
+			{{#if (checkIfEmployeeImgExists name)}}
+				<div class="max-h-[200px] max-w-[150px]">
+					<img src="/employees/{{createEmployeeImgUrl name}}.png" class="w-full h-full object-contain">
+				</div>
+			{{/if}}
+			<div class="flex flex-col justify-center">
+				<p class="text-blue-light text-xl uppercase">
+					{{jobtitle}}
+				</p>
+				<h1 class="text-[64px] leading-[64px] text-blue-dark font-black">
+					{{name}}
+				</h1>
+			</div>
+		</div>
+
+		{{#if skills}}
+			<div class="flex gap-2 flex-wrap">
+				{{#skills}}
+					<div class="bg-primary text-white px-3 py-1 rounded-full flex gap-2 items-center">
+						<p>
+							{{name}}
+						</p>
+						{{#times 5}}
+							<div class="w-2 h-2 rounded-full {{getBulletColor ../score this}}"></div>
+						{{/times}}
+					</div>
+				{{/skills}}
+			</div>
+		{{/if}}
+
+		<div class="grid grid-cols-2 gap-6">
+			<div class="flex flex-col gap-4">
+				<div class="flex gap-2">
+					<p>
+						{{dob}}
+					</p>
+					<p>-</p>
+					<p>
+						{{gender}}
+					</p>
+					<p>-</p>
+					<p>
+						{{nationality}}
+					</p>
+					<p>-</p>
+					<p>
+						{{experience}} years of experience
+					</p>
+				</div>
+				<p>
+					{{about}}
+				</p>
+			</div>
+			<div class="flex flex-col justify-center gap-4">
+				<div class="border-2 border-slate-200 rounded-3xl p-6 grid grid-cols-4 gap-2">
+					<p></p>
+					<p class="font-bold text-blue-dark">
+						Verstaan
+					</p>
+					<p class="font-bold text-blue-dark">
+						Spreken
+					</p>
+					<p class="font-bold text-blue-dark">
+						Schrijven
+					</p>
+					{{#languages}}
+						<p class="font-bold">
+							{{this.language}}
+						</p>
+						<p>
+							{{this.understanding}}
+						</p>
+						<p>
+							{{this.speaking}}
+						</p>
+						<p>
+							{{this.writing}}
+						</p>
+					{{/languages}}
+				</div>
+			</div>
+		</div>
+
+		<div class="flex flex-col gap-6">
+			<h2 class="text-[60px] leading-[60px] text-blue-dark font-black">
+				Information
+			</h2>
+			<table class="w-full break-inside-avoid">
+				<tr class="break-inside-avoid">
+					<td class="break-inside-avoid">
+						<div class="grid grid-cols-2 gap-6 items-start">
+							{{#educations}}
+								<div class="border-2 border-slate-200 rounded-3xl p-6 flex items-start gap-6">
+										<p class="text-3xl">
+											🎓
+										</p>
+									<div class="flex flex-col grow">
+										<h3 class="text-2xl text-blue-dark font-bold">
+											{{this.course}}
+										</h3>
+										<div class="flex items-center justify-between">
+											<p>
+												{{this.institution}}
+											</p>
+											<p class="text-blue-light">
+												{{this.start}} - {{this.end}}
+											</p>
+										</div>
+										<p class="pt-6">
+											{{this.description}}
+										</p>
+									</div>
+								</div>
+							{{/educations}}
+							{{#trainings}}
+								<div class="border-2 border-slate-200 rounded-3xl p-6 flex items-start gap-6">
+										<p class="text-3xl">
+											📖
+										</p>
+									<div class="flex flex-col grow">
+										<h3 class="text-2xl text-blue-dark font-bold">
+											{{this.title}}
+										</h3>
+										<div class="flex items-center justify-between">
+											<p>
+												{{this.type}}
+											</p>
+											<p class="text-blue-light">
+												{{this.start}} - {{this.end}}
+											</p>
+										</div>
+										{{#if comment}}
+											<p class="pt-6">
+												{{this.comment}}
+											</p>
+										{{/if}}
+									</div>
+								</div>
+							{{/trainings}}
+							{{#certifications}}
+								<div class="border-2 border-slate-200 rounded-3xl p-6 flex items-start gap-6">
+										<p class="text-3xl">
+											📜
+										</p>
+									<div class="flex flex-col grow">
+										<h3 class="text-2xl text-blue-dark font-bold">
+											{{this.name}}
+										</h3>
+										<div class="flex items-center justify-between">
+											<p>
+												{{this.category}}
+											</p>
+											<p class="text-blue-light">
+												{{this.date}}
+											</p>
+										</div>
+										{{#if score}}
+											<p class="pt-6">
+												score: {{this.score}}
+											</p>
+										{{/if}}
+									</div>
+								</div>
+							{{/certifications}}
+						</div>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<div class="flex flex-col gap-6">
+			<table class="w-full break-inside-avoid">
+			<h2 class="text-[60px] leading-[60px] text-blue-dark font-black"">
+				Projects
+			</h2>
+				{{#projects}}
+					<tr class="break-inside-avoid">
+						<td class="py-4 break-inside-avoid">
+							<div class="border-2 border-slate-200 rounded-3xl p-6 flex items-start gap-10">
+								<p class="text-3xl">
+									💼
+								</p>
+								<div class="flex flex-col grow">
+									<h3 class="text-3xl text-blue-dark font-bold">
+										{{this.name}}
+									</h3>
+									<div class="flex items-center justify-between">
+										<p>
+											By 
+											<span class="font-bold">
+												{{this.customer}}
+											</span>
+										</p>
+										<p class="text-blue-light">
+											{{this.start}} - {{this.end}}
+										</p>
+									</div>
+									<div class="pt-6">
+										<p class="font-bold max-w-lg">
+											Description
+										</p>
+										<p>
+											{{this.description}}
+										</p>
+									</div>
+									{{#if role}}
+										<div class="pt-6">
+											<p class="font-bold">
+												Role
+											</p>
+											<p>
+												{{this.role}}
+											</p>
+										</div>
+									{{/if}}
+									<div class="flex gap-1 flex-wrap text-blue-dark pt-6">
+										{{#technologies}}
+											<span>
+												{{this}} ·
+											</span>
+										{{/technologies}}
+									</div>
+								</div>
+							</div>
+						</td>
+					</tr>
+				{{/projects}}
+			</table>
+		</div>
+	</div>
+</body>
+</html>
