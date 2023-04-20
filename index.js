@@ -92,7 +92,16 @@ async function init (credentials) {
   for (const id of ids) {
     try {
       const data = await faradoo.getEmployeeData(Number(id))
-      await createPDF(data, cvOptions)
+
+      const options = await enquirer.prompt([
+        {
+          type: 'text',
+          name: 'jobtitle',
+          message: `Change the job title of ${data.name}? leave empty when you want to keep ${data.jobtitle} as job title`
+        }
+      ])
+
+      await createPDF({ ...data, jobtitle: options.jobtitle || data.jobtitle }, cvOptions)
     } catch (err) {
       console.log(
         chalk.red(`Error while fetching cv data from employee: ${id}`)
