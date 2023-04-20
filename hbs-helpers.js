@@ -30,9 +30,4 @@ const helpers = {
   }
 }
 
-function imageToBase64 (name) {
-  const image = fs.readFileSync(path.join(process.cwd(), name))
-  return `data:image/jpeg;base64,${image.toString('base64')}`
-}
-
 export default helpers
