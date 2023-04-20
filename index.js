@@ -120,7 +120,7 @@ async function askCvOptions () {
       type: 'select',
       name: 'logo',
       message: 'Pick your logo to display on the cv\'s',
-      choices: logoFiles.filter(l => l !== 'readMe')
+      choices: logoFiles.filter(l => l !== 'readMe' && l !== '.gitkeep')
     },
     {
       type: 'multiselect',
