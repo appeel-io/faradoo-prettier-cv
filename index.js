@@ -6,14 +6,7 @@ import path from 'path'
 import handlebars from 'handlebars'
 import pdf from 'html-pdf-node'
 import helpers from './hbs-helpers.js'
-import express from 'express'
 import { glob } from 'glob'
-
-// start express server to render the templates and serve the assets
-const app = express()
-const port = 3000
-app.use(express.static('public'))
-const server = app.listen(port)
 
 const cvTemplate = fs.readFileSync(path.join(process.cwd(), 'template.html'), 'utf8')
 handlebars.registerHelper(helpers)
@@ -66,8 +59,6 @@ async function init (credentials) {
         chalk.red(`Error while fetching cv data from employee: ${id}`)
       )
     }
-
-    server.close()
   }
 }
 
@@ -75,6 +66,8 @@ async function createPDF (data, options) {
   console.log(
     chalk.blue(`Started creating cv for ${data.name}`)
   )
+
+  if (!data.jobtitle) data.jobtitle = 'Frontend Developer'
 
   const personalOptions = await enquirer.prompt([
     {
@@ -84,6 +77,8 @@ async function createPDF (data, options) {
     }
   ])
 
+  if (personalOptions.jobtitle) data.jobtitle = personalOptions.jobtitle
+
   if (options.showSkills && options.showSkills !== 'show all') {
     data.skills = data.skills.filter(skill => Number(skill.score) >= Number(options.showSkills) - 1)
   }
@@ -92,32 +87,20 @@ async function createPDF (data, options) {
     data.projects = data.projects.slice(0, options.showProjects)
   }
 
-  const content = template({
-    ...{ ...data, jobtitle: personalOptions.jobtitle || data.jobtitle },
-    ...options
-  })
-  fs.writeFileSync('public/index.html', content)
+  const content = template({ ...data, ...options })
 
-  await pdf.generatePdf({
-    url: `http://localhost:${port}`
-  },
-  {
-    format: 'A4',
-    printBackground: true,
-    margin: {
-      top: 20,
-      bottom: 20
+  pdf.generatePdf(
+    { content },
+    {
+      format: 'A4',
+      printBackground: true,
+      margin: { top: 20, bottom: 20 }
     }
-  }
   ).then(file => {
-    fs.writeFile(`cv-files/${data.name.replaceAll(' ', '_')}.pdf`, file, (err) => {
-      if (err) throw err
-      else {
-        console.log(
-          chalk.green(`Created cv for ${data.name} successfully`)
-        )
-      }
-    })
+    fs.writeFileSync(`cv-files/${data.name.replaceAll(' ', '_')}.pdf`, file)
+    console.log(
+      chalk.green(`Created cv for ${data.name} successfully`)
+    )
   })
 }
 
