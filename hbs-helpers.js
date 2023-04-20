@@ -27,6 +27,12 @@ const helpers = {
   },
   validDate: (date) => {
     return date.includes('null') ? 'NOW' : date
+  },
+  formatString: (str) => {
+    return str
+      .trim()
+      .replace(/[\r\n]/gm, '')
+      .replace(/[@!^&/\\#,+()$~%'"*<>{}]/g, '')
   }
 }
 

@@ -46,10 +46,10 @@
 			{{/if}}
 			<div class="flex flex-col justify-center">
 				<p class="text-blue-light text-xl uppercase">
-					{{jobtitle}}
+					{{formatString jobtitle}}
 				</p>
 				<h1 class="text-[64px] leading-[64px] text-blue-dark font-black">
-					{{name}}
+					{{formatString name}}
 				</h1>
 			</div>
 		</div>
@@ -59,7 +59,7 @@
 				{{#skills}}
 					<div class="bg-primary text-white px-3 py-1 rounded-full flex gap-2 items-center">
 						<p>
-							{{name}}
+							{{formatString name}}
 						</p>
 						{{#times 5}}
 							<div class="w-2 h-2 rounded-full {{getBulletColor ../score this}}"></div>
@@ -77,11 +77,11 @@
 					</p>
 					<p>-</p>
 					<p>
-						{{gender}}
+						{{formatString gender}}
 					</p>
 					<p>-</p>
 					<p>
-						{{nationality}}
+						{{formatString nationality}}
 					</p>
 					<p>-</p>
 					<p>
@@ -89,33 +89,33 @@
 					</p>
 				</div>
 				<p>
-					{{about}}
+					{{formatString about}}
 				</p>
 			</div>
 			<div class="flex flex-col justify-center gap-4">
 				<div class="border-2 border-slate-200 rounded-3xl p-6 grid grid-cols-4 gap-2">
 					<p></p>
 					<p class="font-bold text-blue-dark">
-						Verstaan
+						Understanding
 					</p>
 					<p class="font-bold text-blue-dark">
-						Spreken
+						Speaking
 					</p>
 					<p class="font-bold text-blue-dark">
-						Schrijven
+						Writing
 					</p>
 					{{#languages}}
 						<p class="font-bold">
-							{{this.language}}
+							{{formatString this.language}}
 						</p>
 						<p>
-							{{this.understanding}}
+							{{formatString this.understanding}}
 						</p>
 						<p>
-							{{this.speaking}}
+							{{formatString this.speaking}}
 						</p>
 						<p>
-							{{this.writing}}
+							{{formatString this.writing}}
 						</p>
 					{{/languages}}
 				</div>
@@ -141,18 +141,18 @@
 										</p>
 									<div class="flex flex-col grow">
 										<h3 class="text-2xl text-blue-dark font-bold">
-											{{this.course}}
+											{{formatString this.course}}
 										</h3>
 										<div class="flex items-center justify-between">
 											<p>
-												{{this.institution}}
+												{{formatString this.institution}}
 											</p>
 											<p class="text-blue-light">
 												{{this.start}} - {{this.end}}
 											</p>
 										</div>
 										<p class="pt-6">
-											{{this.description}}
+											{{formatString this.description}}
 										</p>
 									</div>
 								</div>
@@ -170,11 +170,11 @@
 										</p>
 									<div class="flex flex-col grow">
 										<h3 class="text-2xl text-blue-dark font-bold">
-											{{this.title}}
+											{{formatString this.title}}
 										</h3>
 										<div class="flex items-center justify-between">
 											<p>
-												{{this.type}}
+												{{formatString this.type}}
 											</p>
 											<p class="text-blue-light">
 												{{this.start}} - {{this.end}}
@@ -182,7 +182,7 @@
 										</div>
 										{{#if comment}}
 											<p class="pt-6">
-												{{this.comment}}
+												{{formatString this.comment}}
 											</p>
 										{{/if}}
 									</div>
@@ -201,11 +201,11 @@
 										</p>
 									<div class="flex flex-col grow">
 										<h3 class="text-2xl text-blue-dark font-bold">
-											{{this.name}}
+											{{formatString this.name}}
 										</h3>
 										<div class="flex items-center justify-between">
 											<p>
-												{{this.category}}
+												{{formatString this.category}}
 											</p>
 											<p class="text-blue-light">
 												{{this.date}}
@@ -239,20 +239,20 @@
 								</p>
 								<div class="flex flex-col grow">
 									<h3 class="text-3xl text-blue-dark font-bold">
-										{{this.name}}
+										{{formatString this.name}}
 									</h3>
 									<div class="flex items-center justify-between">
 										<p>
 											By 
 											<span class="font-bold">
-												{{this.customer}}
+												{{formatString this.customer}}
 											</span>
 										</p>
 										<p class="text-blue-light">
 											{{this.start}} -
 											{{#validDate end}}
 												<span>
-													{{this}}
+													{{formatString this}}
 												</span>
 											{{/validDate}}
 										</p>
@@ -262,7 +262,7 @@
 											Description
 										</p>
 										<p>
-											{{this.description}}
+											{{formatString this.description}}
 										</p>
 									</div>
 									{{#if role}}
@@ -271,14 +271,14 @@
 												Role
 											</p>
 											<p>
-												{{this.role}}
+												{{formatString this.role}}
 											</p>
 										</div>
 									{{/if}}
 									<div class="flex gap-1 flex-wrap text-blue-dark pt-6">
 										{{#technologies}}
 											<span>
-												{{this}} ·
+												{{formatString this}} ·
 											</span>
 										{{/technologies}}
 									</div>

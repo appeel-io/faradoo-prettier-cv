@@ -89,6 +89,8 @@ async function createPDF (data) {
 
   const content = template({ ...options, ...data })
 
+  fs.writeFileSync('index.html', content)
+
   const pdfFile = await pdf.generatePdf(
     { content },
     {
