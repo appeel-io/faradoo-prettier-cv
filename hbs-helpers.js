@@ -29,10 +29,12 @@ const helpers = {
     return date.includes('null') ? 'NOW' : date
   },
   formatString: (str) => {
-    return str
-      .trim()
-      .replace(/[\r\n]/gm, '')
-      .replace(/[@!^&/\\#,+()$~%'"*<>{}]/g, '')
+    return !str
+      ? ''
+      : str
+        .trim()
+        .replace(/[\r\n]/gm, '')
+        .replace(/[@!^&\\#,+()$~%'"*<>{}]/g, '')
   }
 }
 

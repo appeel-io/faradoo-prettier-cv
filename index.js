@@ -9,8 +9,10 @@ import helpers from './hbs-helpers.js'
 import { glob } from 'glob'
 
 const cvTemplate = fs.readFileSync(path.join(process.cwd(), 'template.html'), 'utf8')
+
 handlebars.registerHelper(helpers)
 const template = handlebars.compile(cvTemplate)
+
 const enquirer = new Enquirer()
 const emailRegEx = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
 
@@ -53,7 +55,7 @@ async function init (credentials) {
   for (const id of ids) {
     try {
       const data = await faradoo.getEmployeeData(Number(id))
-      await createPDF(data, cvOptions)
+      await createPDF(data)
     } catch (err) {
       console.log(
         chalk.red(`Error while fetching cv data from employee: ${id}`)
@@ -89,18 +91,16 @@ async function createPDF (data) {
 
   const content = template({ ...options, ...data })
 
-  fs.writeFileSync('index.html', content)
-
-  const pdfFile = await pdf.generatePdf(
+  await pdf.generatePdf(
     { content },
     {
       format: 'A4',
       printBackground: true,
       margin: { top: 20, bottom: 20 }
     }
-  ).then(file => file)
-
-  fs.writeFileSync(`cv-files/${data.name.replaceAll(' ', '_')}.pdf`, pdfFile)
+  ).then(file => {
+    fs.writeFileSync(`cv-files/${data.name.replaceAll(' ', '_')}.pdf`, file)
+  })
 
   console.log(
     chalk.green(`Created cv for ${data.name} successfully`)

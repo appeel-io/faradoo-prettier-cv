@@ -275,13 +275,15 @@
 											</p>
 										</div>
 									{{/if}}
-									<div class="flex gap-1 flex-wrap text-blue-dark pt-6">
-										{{#technologies}}
-											<span>
-												{{formatString this}} ·
-											</span>
-										{{/technologies}}
-									</div>
+									{{#if technologies}}
+										<div class="flex gap-1 flex-wrap text-blue-dark pt-6">
+											{{#technologies}}
+												<span>
+													{{formatString this}} ·
+												</span>
+											{{/technologies}}
+										</div>
+									{{/if}}
 								</div>
 							</div>
 						</td>
