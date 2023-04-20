@@ -22,6 +22,9 @@ const helpers = {
       accum += block.fn(i)
     }
     return accum
+  },
+  validDate: (date) => {
+    return date.includes('null') ? 'NOW' : date
   }
 }
 

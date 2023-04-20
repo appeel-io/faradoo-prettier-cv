@@ -1,4 +1,4 @@
 node_modules
 .DS_Store
 cv-files/**.pdf
-public/index.html
+public/**.html

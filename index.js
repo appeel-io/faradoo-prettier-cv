@@ -12,7 +12,7 @@ import express from 'express'
 const app = express()
 const port = 3000
 app.use(express.static('public'))
-const server = app.listen(port, async () => {})
+const server = app.listen(port)
 
 const cvTemplate = fs.readFileSync(path.join(process.cwd(), 'template.html'), 'utf8')
 handlebars.registerHelper(helpers)
@@ -58,11 +58,17 @@ async function createPDF (data, options) {
   const content = template({ ...data, ...options })
   fs.writeFileSync('public/index.html', content)
 
-  await pdf.generatePdf({ url: `http://localhost:${port}` },
-    {
-      format: 'A4',
-      printBackground: true
+  await pdf.generatePdf({
+    url: `http://localhost:${port}`
+  },
+  {
+    format: 'A4',
+    printBackground: true,
+    margin: {
+      top: 20,
+      bottom: 20
     }
+  }
   ).then(file => {
     fs.writeFileSync(`cv-files/${data.name.replaceAll(' ', '_')}.pdf`, file)
     console.log(
@@ -77,12 +83,48 @@ async function init (credentials) {
   await faradoo.login(credentials)
   await faradoo.getEmployees()
 
-  const cvOptions = await enquirer.prompt([
+  const cvOptions = await askCvOptions()
+
+  const ids = !cvOptions.employees.length
+    ? Object.keys(faradoo.employees.map(e => e.id))
+    : cvOptions.employees
+
+  for (const id of ids) {
+    try {
+      const data = await faradoo.getEmployeeData(Number(id))
+      await createPDF(data, cvOptions)
+    } catch (err) {
+      console.log(
+        chalk.red(`Error while fetching cv data from employee: ${id}`)
+      )
+    }
+
+    server.close()
+  }
+}
+
+async function askCvOptions () {
+  const logoFiles = fs.readdirSync(path.join(process.cwd(), '/public/logos'))
+
+  return await enquirer.prompt([
     {
       type: 'select',
       name: 'logo',
       message: 'Pick your logo to display on the cv\'s',
-      choices: ['appeel', 'xplore', 'cronos']
+      choices: logoFiles.filter(l => l !== 'readMe')
+    },
+    {
+      type: 'multiselect',
+      name: 'employees',
+      message: 'For wich employee do you want to generate a cv (press space to select, when left empty generate for everyone)',
+      choices: [
+        ...faradoo.employees.map(e => {
+          return { name: e.name, value: e.id }
+        })
+      ],
+      result (employees) {
+        return Object.values(this.map(employees))
+      }
     },
     {
       type: 'select',
@@ -96,19 +138,4 @@ async function init (credentials) {
       message: 'Max amount of projects to be shown on the cv, when left empty there\'s no max'
     }
   ])
-
-  const ids = [21]
-
-  for (const id of ids) {
-    try {
-      const data = await faradoo.getEmployeeData(id)
-      await createPDF(data, cvOptions)
-    } catch (err) {
-      console.log(
-        chalk.red(`Error while fetching cv data from employee: ${id}`)
-      )
-    } finally {
-      server.close()
-    }
-  }
 }
