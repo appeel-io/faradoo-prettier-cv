@@ -20,26 +20,21 @@ try {
   )
   console.log('')
 
-  // const credentials = await enquirer.prompt([
-  //   {
-  //     type: 'input',
-  //     name: 'email',
-  //     message: 'Enter your email address that is linked to Faradoo',
-  //     validate: (input) => emailRegEx.test(input)
-  //   },
-  //   {
-  //     type: 'password',
-  //     name: 'password',
-  //     message: 'Password for Faradoo'
-  //   }
-  // ])
+  const credentials = await enquirer.prompt([
+    {
+      type: 'input',
+      name: 'email',
+      message: 'Enter your email address that is linked to Faradoo',
+      validate: (input) => emailRegEx.test(input)
+    },
+    {
+      type: 'password',
+      name: 'password',
+      message: 'Password for Faradoo'
+    }
+  ])
 
-  // init(credentials)
-
-  init({
-    email: 'wim.vandevenne@appeel.io',
-    password: '62h6F$ByA'
-  })
+  init(credentials)
 } catch (err) {
   console.log(chalk.red('Error while filling in the prompt'))
   process.exit(1)
