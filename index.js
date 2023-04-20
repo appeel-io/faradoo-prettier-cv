@@ -62,14 +62,14 @@ async function init (credentials) {
   }
 }
 
-async function createPDF (data, options) {
+async function createPDF (data) {
   console.log(
     chalk.blue(`Started creating cv for ${data.name}`)
   )
 
   if (!data.jobtitle) data.jobtitle = 'Frontend Developer'
 
-  const personalOptions = await enquirer.prompt([
+  const options = await enquirer.prompt([
     {
       type: 'text',
       name: 'jobtitle',
@@ -77,9 +77,9 @@ async function createPDF (data, options) {
     }
   ])
 
-  if (personalOptions.jobtitle) data.jobtitle = personalOptions.jobtitle
+  if (options.jobtitle) data.jobtitle = options.jobtitle
 
-  if (options.showSkills && options.showSkills !== 'show all') {
+  if (options.showSkills) {
     data.skills = data.skills.filter(skill => Number(skill.score) >= Number(options.showSkills) - 1)
   }
 
@@ -87,7 +87,7 @@ async function createPDF (data, options) {
     data.projects = data.projects.slice(0, options.showProjects)
   }
 
-  const content = template({ ...data, ...options })
+  const content = template({ ...options, ...data })
 
   pdf.generatePdf(
     { content },
