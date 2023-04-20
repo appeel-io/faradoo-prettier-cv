@@ -7,6 +7,7 @@ import handlebars from 'handlebars'
 import pdf from 'html-pdf-node'
 import helpers from './hbs-helpers.js'
 import express from 'express'
+import { glob } from 'glob'
 
 // start express server to render the templates and serve the assets
 const app = express()
@@ -46,7 +47,43 @@ try {
   process.exit(1)
 }
 
+async function init (credentials) {
+  await faradoo.login(credentials)
+  await faradoo.getEmployees()
+
+  const cvOptions = await askCvOptions()
+
+  const ids = !cvOptions.employees.length
+    ? Object.keys(faradoo.employees.map(e => e.id))
+    : cvOptions.employees
+
+  for (const id of ids) {
+    try {
+      const data = await faradoo.getEmployeeData(Number(id))
+      await createPDF(data, cvOptions)
+    } catch (err) {
+      console.log(
+        chalk.red(`Error while fetching cv data from employee: ${id}`)
+      )
+    }
+
+    server.close()
+  }
+}
+
 async function createPDF (data, options) {
+  console.log(
+    chalk.blue(`Started creating cv for ${data.name}`)
+  )
+
+  const personalOptions = await enquirer.prompt([
+    {
+      type: 'text',
+      name: 'jobtitle',
+      message: `Change the job title? leave empty when you want to keep ${data.jobtitle} as job title`
+    }
+  ])
+
   if (options.showSkills && options.showSkills !== 'show all') {
     data.skills = data.skills.filter(skill => Number(skill.score) >= Number(options.showSkills) - 1)
   }
@@ -55,7 +92,10 @@ async function createPDF (data, options) {
     data.projects = data.projects.slice(0, options.showProjects)
   }
 
-  const content = template({ ...data, ...options })
+  const content = template({
+    ...{ ...data, jobtitle: personalOptions.jobtitle || data.jobtitle },
+    ...options
+  })
   fs.writeFileSync('public/index.html', content)
 
   await pdf.generatePdf({
@@ -70,57 +110,26 @@ async function createPDF (data, options) {
     }
   }
   ).then(file => {
-    fs.writeFileSync(`cv-files/${data.name.replaceAll(' ', '_')}.pdf`, file)
-    console.log(
-      chalk.green(
-            `Created cv for ${data.name} successfully`
-      )
-    )
+    fs.writeFile(`cv-files/${data.name.replaceAll(' ', '_')}.pdf`, file, (err) => {
+      if (err) throw err
+      else {
+        console.log(
+          chalk.green(`Created cv for ${data.name} successfully`)
+        )
+      }
+    })
   })
 }
 
-async function init (credentials) {
-  await faradoo.login(credentials)
-  await faradoo.getEmployees()
-
-  const cvOptions = await askCvOptions()
-
-  const ids = !cvOptions.employees.length
-    ? Object.keys(faradoo.employees.map(e => e.id))
-    : cvOptions.employees
-
-  for (const id of ids) {
-    try {
-      const data = await faradoo.getEmployeeData(Number(id))
-
-      const options = await enquirer.prompt([
-        {
-          type: 'text',
-          name: 'jobtitle',
-          message: `Change the job title of ${data.name}? leave empty when you want to keep ${data.jobtitle} as job title`
-        }
-      ])
-
-      await createPDF({ ...data, jobtitle: options.jobtitle || data.jobtitle }, cvOptions)
-    } catch (err) {
-      console.log(
-        chalk.red(`Error while fetching cv data from employee: ${id}`)
-      )
-    }
-
-    server.close()
-  }
-}
-
 async function askCvOptions () {
-  const logoFiles = fs.readdirSync(path.join(process.cwd(), '/public/logos'))
+  const logos = await glob('public/logos/**.**')
 
   return await enquirer.prompt([
     {
       type: 'select',
       name: 'logo',
       message: 'Pick your logo to display on the cv\'s',
-      choices: logoFiles.filter(l => l !== 'readMe' && l !== '.gitkeep')
+      choices: logos.map(v => v.split('logos/')[1])
     },
     {
       type: 'multiselect',

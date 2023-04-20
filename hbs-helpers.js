@@ -1,20 +1,15 @@
-import fs from 'fs'
-import path from 'path'
+import { globSync } from 'glob'
 
 const helpers = {
   getBulletColor: (index, score) => {
     return index >= score ? 'bg-white' : 'bg-blue-dark'
   },
   createEmployeeImgUrl: (name) => {
-    return name.toLowerCase().replaceAll(' ', '_')
+    const image = globSync(`public/employees/${name.toLowerCase().replaceAll(' ', '_')}.**`)[0]
+    return image.replace('public/', '')
   },
   checkIfEmployeeImgExists: (name) => {
-    return fs.existsSync(
-      path.join(
-        process.cwd(),
-        `/public/employees/${name.toLowerCase().replaceAll(' ', '_')}.png`
-      )
-    )
+    return !!globSync(`public/employees/${name.toLowerCase().replaceAll(' ', '_')}.**`).length
   },
   times: (n, block) => {
     let accum = ''
