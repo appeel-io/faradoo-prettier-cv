@@ -1,4 +1,5 @@
 import { globSync } from 'glob'
+import chalk from 'chalk'
 import path from 'path'
 import fs from 'fs'
 
@@ -16,7 +17,16 @@ const helpers = {
     return image.toString('base64')
   },
   checkIfEmployeeImgExists: (name) => {
-    return !!globSync(`public/employees/${name.toLowerCase().replaceAll(' ', '_')}.**`).length
+    const formattedName = name.toLowerCase().replaceAll(' ', '_')
+    const exists = !!globSync(`public/employees/${formattedName}.**`).length
+    if (!exists) {
+      console.log(
+        chalk.red(
+          `No file found in the public/employees folder with name: ${formattedName}`
+        )
+      )
+    }
+    return exists
   },
   times: (n, block) => {
     let accum = ''
