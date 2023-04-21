@@ -46,7 +46,7 @@ async function init (credentials) {
   await faradoo.login(credentials)
   await faradoo.getEmployees()
 
-  const cvOptions = await askCvOptions()
+  const cvOptions = await askGlobalCvOptions()
 
   const ids = !cvOptions.employees.length
     ? Object.values(faradoo.employees.map(e => e.id))
@@ -55,10 +55,11 @@ async function init (credentials) {
   for (const id of ids) {
     try {
       const data = await faradoo.getEmployeeData(Number(id))
-      await createPDF(data)
+      const filteredData = await filterCvData(data)
+      await createPDF(filteredData)
     } catch (err) {
       console.log(
-        chalk.red(`Error while fetching cv data from employee: ${id}`)
+        chalk.red(`Error while creating cv for employee: ${id}`)
       )
     }
   }
@@ -69,30 +70,8 @@ async function createPDF (data) {
     chalk.blue(`Started creating cv for ${data.name}`)
   )
 
-  if (!data.jobtitle) data.jobtitle = 'Frontend Developer'
-
-  const options = await enquirer.prompt([
-    {
-      type: 'text',
-      name: 'jobtitle',
-      message: `Change the job title? leave empty when you want to keep ${data.jobtitle} as job title`
-    }
-  ])
-
-  if (options.jobtitle) data.jobtitle = options.jobtitle
-
-  if (options.showSkills) {
-    data.skills = data.skills.filter(skill => Number(skill.score) >= Number(options.showSkills) - 1)
-  }
-
-  if (options.showProjects) {
-    data.projects = data.projects.slice(0, options.showProjects)
-  }
-
-  const content = template({ ...options, ...data })
-
   await pdf.generatePdf(
-    { content },
+    { content: template(data) },
     {
       format: 'A4',
       printBackground: true,
@@ -107,39 +86,93 @@ async function createPDF (data) {
   )
 }
 
-async function askCvOptions () {
+async function filterCvData (data) {
+  if (!data.jobtitle) data.jobtitle = 'Frontend Developer'
+
+  const options = await askPersonalCvOptions(data)
+
+  if (options.jobtitle) data.jobtitle = options.jobtitle
+
+  if (options.skillCategories.length) {
+    data.skills = data.skills.filter(s => options.skillCategories.includes(s.category))
+  }
+
+  if (options.showSkills) {
+    data.skills = data.skills.filter(skill => Number(skill.score) >= Number(options.showSkills) - 1)
+  }
+
+  if (options.showProjects) {
+    data.projects = data.projects.slice(0, options.showProjects)
+  }
+
+  return { ...options, ...data }
+}
+
+async function askPersonalCvOptions (data) {
+  try {
+    return await enquirer.prompt([
+      {
+        type: 'text',
+        name: 'jobtitle',
+        message: `Change the job title? leave empty when you want to keep ${data.jobtitle} as job title`
+      },
+      {
+        type: 'multiselect',
+        name: 'skillCategories',
+        message: 'Only use specific skill types (press space to select, when left empty it selects all)',
+        choices: [
+          'Frontend',
+          'Backend',
+          'Platforms',
+          'Methodologies',
+          '(Headless) CMS'
+        ]
+      }
+    ])
+  } catch (err) {
+    console.log(chalk.red('Error while filling in the prompt'))
+    throw err
+  }
+}
+
+async function askGlobalCvOptions () {
   const logos = await glob('public/logos/**.**')
 
-  return await enquirer.prompt([
-    {
-      type: 'select',
-      name: 'logo',
-      message: 'Pick your logo to display on the cv\'s',
-      choices: logos.map(v => v.split('logos/')[1])
-    },
-    {
-      type: 'multiselect',
-      name: 'employees',
-      message: 'For wich employee do you want to generate a cv (press space to select, when left empty generate for everyone)',
-      choices: [
-        ...faradoo.employees.map(e => {
-          return { name: e.name, value: e.id }
-        })
-      ],
-      result (employees) {
-        return Object.values(this.map(employees))
+  try {
+    return await enquirer.prompt([
+      {
+        type: 'select',
+        name: 'logo',
+        message: 'Pick your logo to display on the cv\'s',
+        choices: logos.map(v => v.split('logos/')[1])
+      },
+      {
+        type: 'multiselect',
+        name: 'employees',
+        message: 'For wich employee do you want to generate a cv (press space to select, when left empty generate for everyone)',
+        choices: [
+          ...faradoo.employees.map(e => {
+            return { name: e.name, value: e.id }
+          })
+        ],
+        result (employees) {
+          return Object.values(this.map(employees))
+        }
+      },
+      {
+        type: 'select',
+        name: 'showSkills',
+        message: 'Only show skills when they hava a specific score or higher',
+        choices: ['1', '2', '3', '4', '5']
+      },
+      {
+        type: 'numeral',
+        name: 'showProjects',
+        message: 'Max amount of projects to be shown on the cv, when left empty there\'s no max'
       }
-    },
-    {
-      type: 'select',
-      name: 'showSkills',
-      message: 'Only show skills when they hava a specific score or higher',
-      choices: ['1', '2', '3', '4', '5']
-    },
-    {
-      type: 'numeral',
-      name: 'showProjects',
-      message: 'Max amount of projects to be shown on the cv, when left empty there\'s no max'
-    }
-  ])
+    ])
+  } catch (err) {
+    console.log(chalk.red('Error while filling in the prompt'))
+    throw err
+  }
 }

@@ -141,11 +141,24 @@ function formatSkills (evaluation) {
   evaluation.forEach(eva => {
     formattedSkills.push({
       score: eva.score.value,
-      name: eva.skill.name
+      name: eva.skill.name,
+      category: getSkillCategory(eva.skill.skillcategories[0])
     })
   })
 
   return formattedSkills
+}
+
+function getSkillCategory (id) {
+  let category
+
+  if ([1, 4, 6].includes(id)) category = 'Frontend'
+  else if ([2, 3].includes(id)) category = 'Backend'
+  else if (id === 5) category = 'Platforms'
+  else if (id === 7) category = 'Methodologies'
+  else if (id === 8) category = '(Headless) CMS'
+
+  return category
 }
 
 function formatLanguages (langs, options) {
