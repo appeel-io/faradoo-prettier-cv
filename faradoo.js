@@ -41,8 +41,7 @@ const faradoo = {
       faradoo.employees = data.filter(e => e.profile === 'Developer')
       spinner.succeed('Successfully fetched employees')
     } catch (err) {
-      console.log(err)
-      spinner.fail('Error fethcing employees')
+      spinner.fail(err.response.data.message || 'Error fetching employees')
       process.exit(1)
     }
   },
