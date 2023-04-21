@@ -115,18 +115,6 @@ async function askPersonalCvOptions (data) {
         type: 'text',
         name: 'jobtitle',
         message: `Change the job title? leave empty when you want to keep ${data.jobtitle} as job title`
-      },
-      {
-        type: 'multiselect',
-        name: 'skillCategories',
-        message: 'Only use specific skill types (press space to select, when left empty it selects all)',
-        choices: [
-          'Frontend',
-          'Backend',
-          'Platforms',
-          'Methodologies',
-          '(Headless) CMS'
-        ]
       }
     ])
   } catch (err) {
@@ -158,6 +146,18 @@ async function askGlobalCvOptions () {
         result (employees) {
           return Object.values(this.map(employees))
         }
+      },
+      {
+        type: 'multiselect',
+        name: 'skillCategories',
+        message: 'Only use specific skill types (press space to select, when left empty it selects all)',
+        choices: [
+          'Frontend',
+          'Backend',
+          'Platforms',
+          'Methodologies',
+          '(Headless) CMS'
+        ]
       },
       {
         type: 'select',
