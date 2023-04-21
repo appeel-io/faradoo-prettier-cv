@@ -14,6 +14,7 @@ handlebars.registerHelper(helpers)
 const template = handlebars.compile(cvTemplate)
 
 const enquirer = new Enquirer()
+let options
 const emailRegEx = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
 
 try {
@@ -46,15 +47,22 @@ async function init (credentials) {
   await faradoo.login(credentials)
   await faradoo.getEmployees()
 
-  const cvOptions = await askGlobalCvOptions()
+  options = await askGlobalCvOptions()
 
-  const ids = !cvOptions.employees.length
+  console.log(
+    chalk.blue('Starting to generate cv files')
+  )
+
+  const ids = !options.employees.length
     ? Object.values(faradoo.employees.map(e => e.id))
-    : cvOptions.employees
+    : options.employees
 
   for (const id of ids) {
     try {
       const data = await faradoo.getEmployeeData(Number(id))
+      console.log(
+        chalk.blue(`Started creating cv for ${data.name}`)
+      )
       const filteredData = await filterCvData(data)
       await createPDF(filteredData)
     } catch (err) {
@@ -63,13 +71,13 @@ async function init (credentials) {
       )
     }
   }
+
+  console.log(
+    chalk.blueBright.bold('Finished creating cv\'s for employees')
+  )
 }
 
 async function createPDF (data) {
-  console.log(
-    chalk.blue(`Started creating cv for ${data.name}`)
-  )
-
   await pdf.generatePdf(
     { content: template(data) },
     {
@@ -89,7 +97,7 @@ async function createPDF (data) {
 async function filterCvData (data) {
   if (!data.jobtitle) data.jobtitle = 'Frontend Developer'
 
-  const options = await askPersonalCvOptions(data)
+  if (options.personalOptions) await askPersonalCvOptions(data)
 
   if (options.jobtitle) data.jobtitle = options.jobtitle
 
@@ -169,6 +177,11 @@ async function askGlobalCvOptions () {
         type: 'numeral',
         name: 'showProjects',
         message: 'Max amount of projects to be shown on the cv, when left empty there\'s no max'
+      },
+      {
+        type: 'confirm',
+        name: 'personalOptions',
+        message: 'Do you want additional personalized options'
       }
     ])
   } catch (err) {
